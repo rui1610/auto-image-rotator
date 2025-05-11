@@ -33,6 +33,6 @@
 		}
 	},
 	"mounts": [
-		"source=/Volumes/DATASSD2TB,target=/media,type=bind,consistency=cached"
+		"source=/Volumes/DATASSD2TB/bilder/admin/000,target=/media,type=bind,consistency=cached"
 	]
 }

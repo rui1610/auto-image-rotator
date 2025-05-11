@@ -8,7 +8,8 @@ from PIL import Image, ImageFile
 
 
 class Rotator:
-    IMAGES_DIRECTORY = "/media"
+    IMAGES_DIRECTORY = "/media/1970"
+    IMAGES_BROKEN_DIR = "/media/broken"
 
     def __init__(self, overwrite_files: bool = False):
         self.detector = dlib.get_frontal_face_detector()
@@ -33,6 +34,8 @@ class Rotator:
         ) as filepaths:
             for filepath in filepaths:
                 image = self.open_image(filepath)
+                if image is None:
+                    continue
                 rotation = self.analyze_image(image, filepath)
 
                 if rotation:
@@ -77,6 +80,23 @@ class Rotator:
         If opened with OpenCV, the saved image is a much larger file size than the original
         (regardless of whether saved via OpenCV or Pillow).
         """
+        result = None
+        try:
+            result = Image.open(filepath)
+            return result
+        except OSError:
+            # If the image is not a valid image, skip it.
+            print(f"Error opening image: {filepath}")
+
+            # move file to a different directory
+            error_dir = os.path.join(self.IMAGES_BROKEN_DIR)
+            if not os.path.exists(error_dir):
+                os.makedirs(error_dir)
+            new_filepath = os.path.join(error_dir, os.path.basename(filepath))
+            os.rename(filepath, new_filepath)
+            print(f"Moved invalid image to: {new_filepath}")
+
+            return None
 
         return Image.open(filepath)
 
