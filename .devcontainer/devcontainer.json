@@ -1,0 +1,38 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.166.1/containers/javascript-node
+{
+	"name": "heim",
+	"build": {
+		// Linking to the Dockerfile that has all the BTP development tools
+		"dockerfile": "./Dockerfile",
+		"context": "./"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff",
+				"Github.copilot",
+				"Github.github-vscode-theme"
+			],
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.linting.enabled": true,
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestEnabled": true,
+				"[python]": {
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.fixAll": true
+					}
+				},
+				"python.formatting.provider": "black"
+			}
+		}
+	},
+	"mounts": [
+		"source=/Volumes/bilder/immich/upload/library/admin,target=/media,type=bind,consistency=cached"
+	]
+}

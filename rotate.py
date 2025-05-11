@@ -4,16 +4,15 @@ import dlib
 import numpy as np
 import os
 
-from pathlib import Path
 from PIL import Image, ImageFile
 
 
 class Rotator:
-    IMAGES_DIRECTORY = "/images"
+    IMAGES_DIRECTORY = "/media/1968"
 
-    def __init__(self, overwrite_files: bool=False):
+    def __init__(self, overwrite_files: bool = False):
         self.detector = dlib.get_frontal_face_detector()
-        self.overwrite_files =overwrite_files
+        self.overwrite_files = overwrite_files
 
     def analyze_images(self):
         # Recursively loop through all files and subdirectories.
@@ -24,11 +23,14 @@ class Rotator:
             for file_name in files:
                 if file_name.lower().endswith((".jpeg", ".jpg", ".png")):
                     file_path = str(os.path.join(root_dir, file_name))
-                    images.append(file_path)
+                    if file_name[2] != "._":
+                        images.append(file_path)
 
         # Analyze each image file path - rotating when needed.
         rotations = {}
-        with click.progressbar(images, label=f"Analyzing {len(images)} Images...") as filepaths:
+        with click.progressbar(
+            images, label=f"Analyzing {len(images)} Images..."
+        ) as filepaths:
             for filepath in filepaths:
                 image = self.open_image(filepath)
                 rotation = self.analyze_image(image, filepath)
@@ -42,8 +44,14 @@ class Rotator:
 
     def analyze_image(self, image: ImageFile, filepath: str) -> int:
         """Cycles through 4 image rotations of 90 degrees.
-           Saves the image at the current rotation if faces are detected.
+        Saves the image at the current rotation if faces are detected.
         """
+
+        # Fetch the original image's EXIF data.
+        # This is needed to save the image with the same EXIF data.
+        # The EXIF data is not preserved when using OpenCV to save the image.
+        orgInfo = image.info
+        exif_data = orgInfo.get("exif")
 
         for cycle in range(0, 4):
             if cycle > 0:
@@ -59,35 +67,35 @@ class Rotator:
 
             # Save the image only if it has been rotated.
             if cycle > 0:
-                self.save_image(image, filepath)
+                self.save_image(image, filepath, exif_data)
                 return cycle * 90
 
         return 0
 
     def open_image(self, filepath: str) -> ImageFile:
         """Intentionally opens an image file using Pillow.
-           If opened with OpenCV, the saved image is a much larger file size than the original
-           (regardless of whether saved via OpenCV or Pillow).
+        If opened with OpenCV, the saved image is a much larger file size than the original
+        (regardless of whether saved via OpenCV or Pillow).
         """
 
         return Image.open(filepath)
 
-    def save_image(self, image: ImageFile, filepath: str) -> bool:
+    def save_image(self, image: ImageFile, filepath: str, exif_data) -> bool:
         """Saves the rotated image using Pillow."""
 
         if not self.overwrite_files:
             filepath = filepath.replace(".", "-rotated.", 1)
 
         try:
-            image.save(filepath)
+            image.save(filepath, exif=exif_data)
             return True
         except:
             return False
 
 
 @click.command()
-@click.argument("overwrite_files", type=click.BOOL, default=False)
-def cli(overwrite_files: bool=False):
+@click.argument("overwrite_files", type=click.BOOL, default=True)
+def cli(overwrite_files: bool = False):
     rotator = Rotator(overwrite_files)
     rotator.analyze_images()
 
