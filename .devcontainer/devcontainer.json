@@ -33,6 +33,6 @@
 		}
 	},
 	"mounts": [
-		"source=/Volumes/bilder/immich/upload/library/admin,target=/media,type=bind,consistency=cached"
+		"source=/Volumes/DATASSD2TB,target=/media,type=bind,consistency=cached"
 	]
 }
